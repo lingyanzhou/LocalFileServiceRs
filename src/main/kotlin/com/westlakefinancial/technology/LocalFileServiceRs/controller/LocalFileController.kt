@@ -11,25 +11,33 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Controller
 import org.springframework.util.StreamUtils
-import org.springframework.web.bind.annotation .*
-import java.io.FilenameFilter
+import org.springframework.web.bind.annotation.*
+import org.springframework.web.servlet.HandlerMapping
 import javax.servlet.http.HttpServletRequest
 
 @Controller
-@RequestMapping("/file")
+@RequestMapping("/")
 class LocalFileController {
     @Autowired
     var fileService: FileService? = null
 
-    @RequestMapping("/info", method = arrayOf(RequestMethod.GET))
+    @RequestMapping("/info/**", method = arrayOf(RequestMethod.GET))
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun info(@RequestParam path: String): FileInfo = fileService!!.info(path)
+    fun info(request: HttpServletRequest): FileInfo {
+        val reqUrl = request.getAttribute(
+                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = reqUrl.substring("/info/".length)
+        return fileService!!.info(path)
+    }
 
-    @RequestMapping("/stream", method = arrayOf(RequestMethod.GET))
+    @RequestMapping("/stream/**", method = arrayOf(RequestMethod.GET))
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun stream(@RequestParam path: String): HttpEntity<ByteArray> {
+    fun stream(request: HttpServletRequest): HttpEntity<ByteArray> {
+        val reqUrl = request.getAttribute(
+                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = reqUrl.substring("/stream/".length)
         val file = fileService!!.stream(path)
         val document = StreamUtils.copyToByteArray(file)
 
@@ -41,15 +49,25 @@ class LocalFileController {
         return HttpEntity(document, header)
     }
 
-    @RequestMapping("/plain-files", method = arrayOf(RequestMethod.GET))
+    @RequestMapping("/plain-files/**", method = arrayOf(RequestMethod.GET))
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun plainFiles(@RequestParam path: String): List<FileInfo> = fileService!!.plainFiles(path)
+    fun plainFiles(request: HttpServletRequest): List<FileInfo> {
+        val reqUrl = request.getAttribute(
+                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = reqUrl.substring("/plain-files/".length)
+        return fileService!!.plainFiles(path)
+    }
 
-    @RequestMapping("/sub-directories", method = arrayOf(RequestMethod.GET))
+    @RequestMapping("/sub-directories/**", method = arrayOf(RequestMethod.GET))
     @ResponseStatus(HttpStatus.OK)
     @ResponseBody
-    fun subDirectories(@RequestParam path: String): List<FileInfo> = fileService!!.subDirectories(path)
+    fun subDirectories(request: HttpServletRequest): List<FileInfo> {
+        val reqUrl = request.getAttribute(
+                HandlerMapping.PATH_WITHIN_HANDLER_MAPPING_ATTRIBUTE) as String
+        val path = reqUrl.substring("/sub-directories/".length)
+        return fileService!!.subDirectories(path)
+    }
 
     @ExceptionHandler(Exception::class)
     @ResponseBody
